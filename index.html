@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Role Search</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" id="dynamic-favicon" type="image/png" href="https://www.zapatainc.com/wp-content/uploads/2023/01/white-logo.png" />
+</head>
+<body>
+  <div class="site-header">
+    <div class="header-bar">
+      <div class="header-logo">
+        <img src="https://www.zapatainc.com/wp-content/uploads/2023/01/white-logo.png" alt="Logo" height="48" />
+      </div>
+      <h1 class="header-title">Project Role Search</h1>
+    </div>
+  </div>
+
+  <div class="container chatbot-main">
+    <header>
+      <p>Upload a TXT or PDF file to extract employees and their roles.</p>
+    </header>
+
+    <main>
+      <div style="display: flex; gap: 16px; margin-bottom: 12px;">
+        <label><input type="radio" name="upload-mode" value="file" checked> Upload one file</label>
+        <label><input type="radio" name="upload-mode" value="folder"> Upload a folder</label>
+      </div>
+      <form id="chat-form" class="chat-form">
+        <input type="file" id="file-input" accept=".txt,.pdf,.docx" required />
+        <input type="file" id="folder-input" webkitdirectory directory multiple style="display:none;" />
+        <input type="text" id="employee-search" placeholder="Search employees (comma separated)" style="display:none; margin-left:12px; padding:8px; border-radius:6px; border:1px solid #b0b6be; font-size:1.08rem; width:320px;" />
+        <button type="submit">Analyze</button>
+      </form>
+      <pre id="output" style="white-space: pre-wrap; margin-top: 24px; font-size: 1.08rem;"></pre>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script>
+    if (typeof pdfjsLib !== 'undefined') {
+      window.pdfjsLib = pdfjsLib;
+    }
+  </script>
+
+  <script src="script.js"></script>
+</body>
+</html>
