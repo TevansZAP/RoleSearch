@@ -6,22 +6,31 @@ const folderInput = document.getElementById("folder-input");
 const outputElem = document.getElementById("output");
 const modeRadios = document.getElementsByName("upload-mode");
 const employeeSearch = document.getElementById("employee-search");
+
+function updateFileLabel() {
+  const isFileMode = document.querySelector('input[name="upload-mode"]:checked').value === "file";
+
+  document.getElementById("file-label").classList.toggle("hidden", !isFileMode);
+  document.getElementById("file-input").classList.toggle("hidden", !isFileMode);
+  document.getElementById("file-input").required = isFileMode;
+
+  document.getElementById("folder-label").classList.toggle("hidden", isFileMode);
+  document.getElementById("folder-input").classList.toggle("hidden", isFileMode);
+  document.getElementById("folder-input").required = !isFileMode;
+
+  employeeSearch.classList.toggle("hidden", isFileMode);
+}
+
 modeRadios.forEach((radio) => {
-  radio.addEventListener("change", () => {
-    if (radio.value === "file" && radio.checked) {
-      fileInput.style.display = "";
-      fileInput.required = true;
-      folderInput.style.display = "none";
-      folderInput.required = false;
-      if (employeeSearch) employeeSearch.style.display = "none";
-    } else if (radio.value === "folder" && radio.checked) {
-      fileInput.style.display = "none";
-      fileInput.required = false;
-      folderInput.style.display = "";
-      folderInput.required = true;
-      if (employeeSearch) employeeSearch.style.display = "";
-    }
-  });
+  radio.addEventListener("change", updateFileLabel);
+});
+updateFileLabel();
+
+fileInput.addEventListener("change", function () {
+  document.getElementById("file-label").textContent = this.files[0] ? this.files[0].name : "Choose File";
+});
+folderInput.addEventListener("change", function () {
+  document.getElementById("folder-label").textContent = this.files.length ? "Folder Selected" : "Choose Folder";
 });
 
 form.addEventListener("submit", async (e) => {
@@ -86,7 +95,6 @@ async function processDocument(documentText) {
   const decoder = new TextDecoder("utf-8");
   let buffer = "";
   let outputBuffer = "";
-  let animationStopped = false;
 
   try {
     while (true) {
@@ -101,7 +109,6 @@ async function processDocument(documentText) {
         if (!line.startsWith("data:")) continue;
         const jsonData = line.replace("data:", "").trim();
         if (!jsonData || jsonData === "[DONE]") {
-          if (!animationStopped) animationStopped = true;
           outputElem.textContent = outputBuffer.trim();
           return;
         }
@@ -109,9 +116,6 @@ async function processDocument(documentText) {
           const parsed = JSON.parse(jsonData);
           const delta = parsed.choices?.[0]?.delta?.content;
           if (delta) {
-            if (!animationStopped) {
-              animationStopped = true;
-            }
             outputBuffer += delta;
             outputElem.textContent = outputBuffer;
           }
@@ -148,11 +152,8 @@ async function handleSingleFile(file) {
         text += content.items.map((item) => item.str).join(" ") + "\n";
       }
 
-      console.log("Extracted PDF text:\n", text);
-
       if (!text || text.trim().length < 100) {
-        outputElem.textContent =
-          "Could not extract meaningful text from this file. It may be scanned, empty, or unreadable.";
+        outputElem.textContent = "Could not extract meaningful text from this file. It may be scanned, empty, or unreadable.";
         return;
       }
 
@@ -168,10 +169,8 @@ async function handleSingleFile(file) {
       const arrayBuffer = await file.arrayBuffer();
       const result = await window.mammoth.extractRawText({ arrayBuffer });
       const text = result.value;
-      console.log("Extracted DOCX text:\n", text);
       if (!text || text.trim().length < 50) {
-        outputElem.textContent =
-          "Could not extract meaningful text from this DOCX file. It may be empty or unreadable.";
+        outputElem.textContent = "Could not extract meaningful text from this DOCX file. It may be empty or unreadable.";
         return;
       }
       await processDocument(text);
@@ -233,7 +232,7 @@ async function handleFolder(files) {
     projectFiles[project].push(f);
   });
 
-  outputElem.innerHTML = `<div id="spinner-container" style="display:flex;align-items:center;gap:10px;margin-bottom:16px;"><img src='https://www.zapatainc.com/wp-content/uploads/2023/01/white-logo.png' class='ui-spinner-logo' style='width:32px;height:32px;border-radius:50%;' alt='Loading...' /><span id='analyze-status'>Analyzing all files in chunks, please wait...</span><span id='progress-status' style='margin-left:12px;'></span></div>`;
+  outputElem.textContent = "Analyzing all files, please wait...";
 
   const fileList = [];
   for (const [project, filesArr] of Object.entries(projectFiles)) {
@@ -267,7 +266,6 @@ async function handleFolder(files) {
   }
   if (current.length > 0) chunks.push(current);
 
-  const progressStatus = document.getElementById("progress-status");
   const totalChunks = chunks.length;
   let processedChunks = 0;
 
@@ -276,20 +274,16 @@ async function handleFolder(files) {
     const jsonArr = await extractPeopleProjectsRolesJSON(chunks[i]);
     if (Array.isArray(jsonArr) && jsonArr.length) partialResults.push(...jsonArr);
     processedChunks++;
-    if (progressStatus) {
-      const percent = Math.round((processedChunks / totalChunks) * 100);
-      progressStatus.textContent = `${percent}% complete`;
-    }
+    const percent = Math.round((processedChunks / totalChunks) * 100);
+    outputElem.textContent = `Analyzing all files: ${percent}% complete`;
   }
 
   outputElem.textContent = "";
 
-  const employeeSearchInput = document.getElementById("employee-search");
-  let employeeNames = employeeSearchInput && employeeSearchInput.value.trim();
-  let employeeList = [];
-  if (employeeNames) {
-    employeeList = employeeNames.split(",").map((n) => n.trim()).filter(Boolean);
-  }
+  const employeeNames = employeeSearch.value.trim();
+  const employeeList = employeeNames
+    ? employeeNames.split(",").map((n) => n.trim()).filter(Boolean)
+    : [];
 
   const allJson = JSON.stringify(partialResults);
   await streamFinalGroupedSummary(allJson, employeeList);
@@ -305,9 +299,7 @@ async function extractPeopleProjectsRolesJSON(chunkText) {
     },
     body: JSON.stringify({
       model: "gpt-4o",
-      messages: [
-        { role: "user", content: prompt }
-      ],
+      messages: [{ role: "user", content: prompt }],
       stream: false,
       max_tokens: 2048,
       temperature: 0.2,
@@ -325,9 +317,10 @@ async function extractPeopleProjectsRolesJSON(chunkText) {
 
 async function streamFinalGroupedSummary(allJson, employeeList) {
   let prompt = `Given the following extracted data from multiple project files (as a JSON array), produce a single summary grouped by person, listing all projects and roles for each person. Only include real people, not generic roles or teams. Format as:\n\nName\nProject 1 - role(s)\nProject 2 - role(s)\n...\n\nHere is the data:\n${allJson}`;
-  if (employeeList && employeeList.length > 0) {
+  if (employeeList.length > 0) {
     prompt = `Given the following extracted data from multiple project files (as a JSON array), produce a single summary grouped by person, listing all projects and roles for each person. Only include real people, not generic roles or teams. Only include the following employees (case-insensitive match): ${employeeList.join(", ")}. Format as:\n\nName\nProject 1 - role(s)\nProject 2 - role(s)\n...\n\nHere is the data:\n${allJson}`;
   }
+
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -336,23 +329,23 @@ async function streamFinalGroupedSummary(allJson, employeeList) {
     },
     body: JSON.stringify({
       model: "gpt-4o",
-      messages: [
-        { role: "user", content: prompt }
-      ],
+      messages: [{ role: "user", content: prompt }],
       stream: true,
       max_tokens: 2048,
       temperature: 0.2,
     }),
   });
+
   if (!res.ok) {
     outputElem.textContent = `Error: ${res.status} ${res.statusText}`;
     return;
   }
+
   const reader = res.body.getReader();
   const decoder = new TextDecoder("utf-8");
   let buffer = "";
   let outputBuffer = "";
-  let animationStopped = false;
+
   try {
     while (true) {
       const { value, done } = await reader.read();
@@ -364,7 +357,6 @@ async function streamFinalGroupedSummary(allJson, employeeList) {
         if (!line.startsWith("data:")) continue;
         const jsonData = line.replace("data:", "").trim();
         if (!jsonData || jsonData === "[DONE]") {
-          if (!animationStopped) animationStopped = true;
           outputElem.textContent = outputBuffer.trim();
           return;
         }
@@ -372,9 +364,6 @@ async function streamFinalGroupedSummary(allJson, employeeList) {
           const parsed = JSON.parse(jsonData);
           const delta = parsed.choices?.[0]?.delta?.content;
           if (delta) {
-            if (!animationStopped) {
-              animationStopped = true;
-            }
             outputBuffer += delta;
             outputElem.textContent = outputBuffer;
           }

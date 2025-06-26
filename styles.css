@@ -8,7 +8,7 @@ body {
 
 .site-header {
   width: 100%;
-  background: #333; /* dark gray */
+  background: #333;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
@@ -83,7 +83,7 @@ header p {
 }
 
 header .header-title {
-  color: #fff !important; /* force white */
+  color: #fff !important;
   font-size: 2.2rem;
   font-weight: 700;
   margin-left: 24px;
@@ -181,12 +181,13 @@ button[type="submit"] {
   font-weight: 400;
   cursor: pointer;
   box-shadow: 0 1px 4px rgba(0,82,155,0.10);
-  transition: none;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.18s cubic-bezier(0.4,0,0.2,1);
 }
 
 button[type="submit"]:hover {
   background: #003d73;
   box-shadow: 0 2px 8px rgba(0,82,155,0.16);
+  transform: scale(1.06);
 }
 
 footer {
@@ -201,7 +202,6 @@ footer {
   font-family: 'Helvetica', Arial, sans-serif;
 }
 
-/* Modern radio buttons */
 input[type="radio"] {
   accent-color: #00529b;
   width: 1.2em;
@@ -210,47 +210,27 @@ input[type="radio"] {
   vertical-align: middle;
 }
 
-/* Modern file input styling */
 input[type="file"] {
-  display: inline-block;
-  padding: 8px 12px;
-  border: 1px solid #b0b6be;
-  border-radius: 6px;
-  background: #f4f6f8;
-  color: #222;
-  font-size: 1.08rem;
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: border 0.2s, box-shadow 0.2s;
-}
-input[type="file"]:focus {
-  border: 1.5px solid #00529b;
-  outline: none;
-  box-shadow: 0 0 0 2px #b3d1f7;
+  display: none;
 }
 
-/* Hide ugly default file input button, use label as button */
-input[type="file"]::-webkit-file-upload-button {
-  visibility: hidden;
-}
-input[type="file"]::file-selector-button {
-  visibility: hidden;
-}
-
-.file-label {
+.custom-file-label, .custom-folder-label {
   display: inline-block;
-  background: #00529b;
+  background: #333;
   color: #fff;
   border-radius: 6px;
-  padding: 8px 18px;
+  padding: 10px 28px;
   font-size: 1.08rem;
+  font-weight: 400;
   cursor: pointer;
-  margin-right: 10px;
-  margin-bottom: 8px;
-  transition: background 0.2s;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.18s cubic-bezier(0.4,0,0.2,1);
 }
-.file-label:hover {
-  background: #003d73;
+.custom-file-label:hover, .custom-folder-label:hover {
+  background: #222;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.16);
+  transform: scale(1.06);
 }
 
 @media (max-width: 700px) {
@@ -266,3 +246,6 @@ input[type="file"]::file-selector-button {
   }
 }
 
+.hidden {
+  display: none !important;
+}
