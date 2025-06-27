@@ -1,16 +1,14 @@
 # Project Role Search
 
-A modern web app for extracting and analyzing employee names and roles from uploaded TXT, PDF, and DOCX files using OpenAI’s GPT-4o API. Supports single file and folder uploads, employee search, and robust streaming output.
+A local application for extracting and analyzing employee names and roles from uploaded TXT, PDF, and DOCX files using OpenAI’s GPT-4o API. Supports single file and folder uploads, employee search, and streaming output.
 
 ## Features
 
 - Upload and analyze TXT, PDF, or DOCX files
 - Upload entire folders (including subfolders)
 - Extracts and groups employees and their project roles
-- Search/filter by employee names in folder mode
-- Modern, responsive UI
+- Search by employee names in folder mode
 - Uses OpenAI GPT-4o for analysis (API key required)
-- Supports streaming output for fast feedback
 
 ## Getting Started
 
@@ -41,4 +39,4 @@ A modern web app for extracting and analyzing employee names and roles from uplo
 ## Security
 
 **Do not share your OpenAI API key publicly.**  
-This app runs entirely in your browser; your key is never sent to a server.
+This application runs entirely in your browser. Your key is never sent to a server.
